@@ -1,0 +1,8 @@
+C:\Users\danial\Documents\Visual Studio 2010\Projects\SwtorAddon\SwtorAddon\obj\Debug\ResolveAssemblyReference.cache
+C:\Users\danial\Documents\Visual Studio 2010\Projects\SwtorAddon\SwtorAddon\bin\Debug\SwtorAddon.dll
+C:\Users\danial\Documents\Visual Studio 2010\Projects\SwtorAddon\SwtorAddon\bin\Debug\SwtorAddon.pdb
+C:\Users\danial\Documents\Visual Studio 2010\Projects\SwtorAddon\SwtorAddon\bin\Debug\Advanced Combat Tracker.exe
+C:\Users\danial\Documents\Visual Studio 2010\Projects\SwtorAddon\SwtorAddon\bin\Debug\GammaJul.LgLcd.dll
+C:\Users\danial\Documents\Visual Studio 2010\Projects\SwtorAddon\SwtorAddon\bin\Debug\ICSharpCode.SharpZipLib.dll
+C:\Users\danial\Documents\Visual Studio 2010\Projects\SwtorAddon\SwtorAddon\obj\Debug\SwtorAddon.dll
+C:\Users\danial\Documents\Visual Studio 2010\Projects\SwtorAddon\SwtorAddon\obj\Debug\SwtorAddon.pdb
