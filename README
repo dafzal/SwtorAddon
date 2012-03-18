@@ -1,1 +1,18 @@
 Swtor addon for ACT
+
+How to use:
+
+1) Download SwtorAddon (zip file): https://github.com/dafzal/SwtorAddon/zipball/master
+2) Extract the zip file to c:\SwtorAddon
+3) Download and install ACT: http://advancedcombattracker.com/
+4) Run ACT
+5) Go to the plugins tab
+6) Click Browse
+7) Add the plugin. Should be c:\SwtorAddon\SwtorAddon\bin\Debug\SwtorAddon.dll
+8) Click Add/Enable Plugin
+9) Go to the Import/Export tab
+10) Click Select File
+11) Combat logs should be in C:\Users\iota\Documents\Star Wars - The Old Republic\CombatLogs
+12) Click YOU
+
+You're done! Play around with the encounters in the main tab.
