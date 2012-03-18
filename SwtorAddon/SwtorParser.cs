@@ -120,9 +120,9 @@ namespace SwtorAddon
             {
                 type = SwingTypeEnum.Melee;
             }
-            ActGlobals.oFormActMain.AddCombatAction((int)type, crit_value, "None", source, ability, new Dnum(value), time, ActGlobals.oFormActMain.GlobalTimeSorter, target, value_type);
             if (threat > 0)
             {
+                ActGlobals.oFormActMain.AddCombatAction((int)type, crit_value, "None", source, ability, new Dnum(value), time, ActGlobals.oFormActMain.GlobalTimeSorter, target, value_type);
                 ActGlobals.oFormActMain.AddCombatAction((int)SwingTypeEnum.Threat, crit_value, "None", source, ability, new Dnum(threat), time, ActGlobals.oFormActMain.GlobalTimeSorter, target, "");
             } 
             return;
