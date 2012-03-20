@@ -46,19 +46,19 @@ namespace SwtorAddon
 
             CombatantData.OutgoingDamageTypeDataObjects = new Dictionary<string, CombatantData.DamageTypeDef>
 	        {
-		        {"Damage Done", new CombatantData.DamageTypeDef("Damage Done", -1, Color.Black)},
+		        {"Damage Done", new CombatantData.DamageTypeDef("Damage Done", -1, Color.Orange)},
 		        {"Healing Done", new CombatantData.DamageTypeDef("Healing Done", 1, Color.Blue)},
-		        {"Threat Done", new CombatantData.DamageTypeDef("Threat Done", 0, Color.Orange)},
+		        {"Threat Done", new CombatantData.DamageTypeDef("Threat Done", 0, Color.Black)},
                 // I dont understand why, but the last entry is always the sum of all other counters. 
                 // Its not particularly useful to have a counter for Damage+Threat
-		        {"", new CombatantData.DamageTypeDef("", 0, Color.Transparent)} 
+		        {"All Outgoing", new CombatantData.DamageTypeDef("All Outgoing", 0, Color.Transparent)} 
 	        };
             CombatantData.IncomingDamageTypeDataObjects = new Dictionary<string, CombatantData.DamageTypeDef>
 	        {
 		        {"Damage Recieved", new CombatantData.DamageTypeDef("Damage Recieved", -1, Color.Red)},
 		        {"Healing Recieved",new CombatantData.DamageTypeDef("Healing Recieved", 1, Color.Brown)},
 		        {"Threat Recieved",new CombatantData.DamageTypeDef("Threat Recieved", 0, Color.Yellow)},
-		        {" ",new CombatantData.DamageTypeDef(" ", 0, Color.Transparent)}
+		        {"All Incoming",new CombatantData.DamageTypeDef("All Incoming", 0, Color.Transparent)}
 	        };
             CombatantData.SwingTypeToDamageTypeDataLinksOutgoing = new SortedDictionary<int, List<string>>
 	        { 
@@ -172,6 +172,7 @@ namespace SwtorAddon
                 type = 3;
             }
             // Heat/Rage/Force regen in this game is weird. Spend and Restore mean different things based on the class.
+            // TODO: Add class specific logic to make this work properly.
             /*else if (event_type.Contains("Spend"))
             {
                 log.detectedType = Color.OrangeRed.ToArgb();
