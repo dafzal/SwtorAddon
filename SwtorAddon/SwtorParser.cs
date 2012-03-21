@@ -201,7 +201,7 @@ namespace SwtorAddon
             else if (line.event_detail.Contains("Death"))
             {
                 ActGlobals.oFormActMain.AddCombatAction((int)SwingTypeEnum.NonMelee, line.crit_value, 
-                    "None", line.source, line.ability, new Dnum(Dnum.Death), time,
+                    "None", line.source, line.ability, Dnum.Death, time,
                     ActGlobals.oFormActMain.GlobalTimeSorter, line.target, "Death");
                 
             }
