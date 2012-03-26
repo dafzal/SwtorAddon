@@ -87,8 +87,8 @@ namespace SwtorAddon
 		        {THREAT, new List<string> { "Threat Recieved" } }
 	        };
 
-            CombatantData.DamageSwingTypes = new List<int> { 2 };
-            CombatantData.HealingSwingTypes = new List<int> { 3 };
+            CombatantData.DamageSwingTypes = new List<int> { DMG };
+            CombatantData.HealingSwingTypes = new List<int> { HEALS };
 
             CombatantData.DamageTypeDataOutgoingDamage = "Damage Done";
             CombatantData.DamageTypeDataNonSkillDamage = "Damage Done";
@@ -126,9 +126,10 @@ namespace SwtorAddon
             public int threat;
             
             static Regex regex = 
-                new Regex(@"\[(.*)\] \[(.*)\] \[(.*)\] \[(.*)\] \[(.*)\] \((.*)\)[.<]*([!>]*)[\s<]*(\d*)?[>]*", 
+                new Regex(@"\[(.*)\] \[(.*)\] \[(.*)\] \[(.*)\] \[(.*)\] \((.*)\)[\s<]*(\d*)?[>]*", 
                     RegexOptions.Compiled);
             static Regex id_regex = new Regex(@"\s*\{\d*}\s*", RegexOptions.Compiled);
+        
             public LogLine(string line) 
             {
                 line = id_regex.Replace(line, "");
@@ -158,23 +159,23 @@ namespace SwtorAddon
                 {
                     value_type = "";
                 }
-                threat = matches[0].Groups[8].Value.Length > 0 ? int.Parse(matches[0].Groups[8].Value) : 0;
+                threat = matches[0].Groups[7].Value.Length > 0 ? int.Parse(matches[0].Groups[7].Value) : 0;
             }
         }
-
+ 
         private void ParseLine(bool isImport, LogLineEventArgs log)
         {
             ActGlobals.oFormActMain.GlobalTimeSorter++;
             log.detectedType = Color.Black.ToArgb();
             DateTime time = ActGlobals.oFormActMain.LastKnownTime;
             LogLine line = new LogLine(log.logLine);
-            if (line.event_detail.Contains("ExitCombat"))
+            if (log.logLine.Contains("{836045448945490}")) // Exit Combat
             {
                 ActGlobals.oFormActMain.EndCombat(!isImport);
                 log.detectedType = Color.Purple.ToArgb();
                 return;
             }
-            if (line.event_detail.Contains("EnterCombat"))
+            if (log.logLine.Contains("{836045448945489}")) // Enter Combat
             {
                 ActGlobals.oFormActMain.EndCombat(!isImport);
                 ActGlobals.oFormActMain.SetEncounter(time, line.source, line.target);
@@ -183,25 +184,26 @@ namespace SwtorAddon
             }
            
             int type = 0;
-            if (line.event_detail.Contains("Damage"))
+            if (log.logLine.Contains("{836045448945501}")) // Damage
             {
                 log.detectedType = Color.Red.ToArgb();
                 type = DMG;
             }
-            else if (line.event_detail.Contains("Taunt") || line.event_detail.Contains("Threat"))
+            else if (log.logLine.Contains("{836045448945488}") || // Taunt
+                log.logLine.Contains("{836045448945483}")) // Threat
             {
                 log.detectedType = Color.Blue.ToArgb();
                 type = THREAT;
             }
-            else if (line.event_detail.Contains("Heal"))
+            else if (log.logLine.Contains("{836045448945500}")) // Heals
             {
                 log.detectedType = Color.Green.ToArgb();
                 type = HEALS;
             }
-            else if (line.event_detail.Contains("Death"))
+            else if (log.logLine.Contains("{836045448945493}")) // Death
             {
-                ActGlobals.oFormActMain.AddCombatAction((int)SwingTypeEnum.NonMelee, line.crit_value, 
-                    "None", line.source, line.ability, Dnum.Death, time,
+                ActGlobals.oFormActMain.AddCombatAction(DMG, line.crit_value, 
+                    "None", line.source, "Killing Blow", Dnum.Death, time,
                     ActGlobals.oFormActMain.GlobalTimeSorter, line.target, "Death");
                 
             }
