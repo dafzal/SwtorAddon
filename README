@@ -8,7 +8,7 @@ How to use:
 4) Run ACT
 5) Go to the plugins tab
 6) Click Browse
-7) Add the plugin. Should be c:\SwtorAddon\SwtorAddon\bin\Debug\SwtorAddon.dll
+7) Add the plugin. Should be c:\SwtorAddon\SwtorAddon\SwtorParser.cs
 8) Click Add/Enable Plugin
 9) Go to the Import/Export tab
 10) Click Select File
