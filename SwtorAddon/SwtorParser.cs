@@ -7,6 +7,7 @@ using Advanced_Combat_Tracker;
 using System.Windows.Forms;
 using System.Text.RegularExpressions;
 using System.Drawing;
+using System.IO;
 
 namespace SwtorAddon
 {
@@ -28,6 +29,7 @@ namespace SwtorAddon
 
             ActGlobals.oFormActMain.BeforeLogLineRead += new LogLineEventDelegate(ParseLine);
             ActGlobals.oFormActMain.GetDateTimeFromLog = new FormActMain.DateTimeLogParser(ParseDateTime);
+            ActGlobals.oFormActMain.LogFileChanged += new LogFileChangedDelegate(oFormActMain_LogFileChanged);
             regex = new Regex(@"\[(.*)\] \[(.*)\] \[(.*)\] \[(.*)\] \[(.*)\] \((.*)\)[.<]*([!>]*)[.<]*([!>]*)[>]*", 
                 RegexOptions.Compiled);
         }
@@ -106,7 +108,7 @@ namespace SwtorAddon
 
             ActGlobals.oFormActMain.ValidateLists();
             ActGlobals.oFormActMain.ValidateTableSetup();
-            ActGlobals.oFormActMain.TimeStampLen = 22;
+            ActGlobals.oFormActMain.TimeStampLen = 14;
 
             // All encounters are set by Enter/ExitCombat.
             UserControl opMainTableGen = (UserControl)ActGlobals.oFormActMain.OptionsControlSets[@"Main Table/Encounters\General"][0];
@@ -162,7 +164,9 @@ namespace SwtorAddon
                 threat = matches[0].Groups[7].Value.Length > 0 ? int.Parse(matches[0].Groups[7].Value) : 0;
             }
         }
- 
+
+        static DateTime default_date = new DateTime(2012, 1, 1);
+        static int last_hour = 0;
         private void ParseLine(bool isImport, LogLineEventArgs log)
         {
             ActGlobals.oFormActMain.GlobalTimeSorter++;
@@ -178,6 +182,7 @@ namespace SwtorAddon
             if (log.logLine.Contains("{836045448945489}")) // Enter Combat
             {
                 ActGlobals.oFormActMain.EndCombat(!isImport);
+                ActGlobals.charName = line.source;
                 ActGlobals.oFormActMain.SetEncounter(time, line.source, line.target);
                 log.detectedType = Color.Purple.ToArgb();
                 return;
@@ -240,23 +245,61 @@ namespace SwtorAddon
             }
             return;
         }
+        DateTime logFileDate = DateTime.Now;
+        Regex logfileDateTimeRegex = new Regex(@"combat_(?<Y>\d{4})-(?<M>\d\d)-(?<D>\d\d)_(?<h>\d\d)_(?<m>\d\d)_(?<s>\d\d)_\d+\.txt", RegexOptions.Compiled);
+        void oFormActMain_LogFileChanged(bool IsImport, string NewLogFileName)
+        {
+            if (NewLogFileName == "")
+            {
+                return;
+            }
+            //combat_2012-04-02_09_20_30_162660.txt
+            FileInfo newFile = new FileInfo(NewLogFileName);
+            Match match = logfileDateTimeRegex.Match(newFile.Name);
+            if (match.Success)	// If we can parse the creation date from the filename
+            {
+                try
+                {
+                    logFileDate = new DateTime(
+                        Int32.Parse(match.Groups[1].Value),		// Y
+                        Int32.Parse(match.Groups[2].Value),		// M
+                        Int32.Parse(match.Groups[3].Value),		// D
+                        Int32.Parse(match.Groups[4].Value),		// h
+                        Int32.Parse(match.Groups[5].Value),		// m
+                        Int32.Parse(match.Groups[6].Value));		// s
+                }
+                catch
+                {
+                    logFileDate = newFile.CreationTime;
+                }
+            }
+            else
+            {
+                logFileDate = newFile.CreationTime;
+            }
+        }
         private DateTime ParseDateTime(string line)
         {
             try
             {
-                //[03/16/2012 22:55:28] 
+                //[22:55:28.335] 
                 if (line.Length < ActGlobals.oFormActMain.TimeStampLen)
                     return ActGlobals.oFormActMain.LastEstimatedTime;
 
-                int year, month, day, hour, min, sec;
-                month = Convert.ToInt32(line.Substring(1, 2));
-                day = Convert.ToInt32(line.Substring(4, 2));
-                year = Convert.ToInt32(line.Substring(7, 4));
-                hour = Convert.ToInt32(line.Substring(12, 2));
-                min = Convert.ToInt32(line.Substring(15, 2));
-                sec = Convert.ToInt32(line.Substring(18, 2));
+                int hour, min, sec, millis;
 
-                return new DateTime(year, month, day, hour, min, sec);
+                hour = Convert.ToInt32(line.Substring(1, 2));
+                //temp
+                hour += 4;
+                hour %= 24;
+                min = Convert.ToInt32(line.Substring(4, 2));
+                sec = Convert.ToInt32(line.Substring(7, 2));
+                millis = Convert.ToInt32(line.Substring(10, 3));
+                DateTime parsedTime = new DateTime(logFileDate.Year, logFileDate.Month, logFileDate.Day, hour, min, sec, millis);
+                if (parsedTime < logFileDate)			// if time loops from 23h to 0h, the parsed time will be less than the log creation time, so add one day
+                    parsedTime = parsedTime.AddDays(1);	// only works for log files that are less than 24h in duration
+
+                return parsedTime;
             }
             catch
             {
