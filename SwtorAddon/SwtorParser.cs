@@ -289,9 +289,6 @@ namespace SwtorAddon
                 int hour, min, sec, millis;
 
                 hour = Convert.ToInt32(line.Substring(1, 2));
-                //temp
-                hour += 4;
-                hour %= 24;
                 min = Convert.ToInt32(line.Substring(4, 2));
                 sec = Convert.ToInt32(line.Substring(7, 2));
                 millis = Convert.ToInt32(line.Substring(10, 3));
