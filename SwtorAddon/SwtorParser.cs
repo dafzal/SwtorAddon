@@ -282,7 +282,7 @@ namespace SwtorAddon
             }
             if (type == BUFF && ActGlobals.oFormActMain.SetEncounter(time, line.source, line.target))
             {
-                ActGlobals.oFormActMain.AddCombatAction(type, line.crit_value, "None", line.source, line.ability.Value,
+                ActGlobals.oFormActMain.AddCombatAction(type, line.crit_value, "None", line.source, line.event_detail.Value,
                     Dnum.NoDamage, time, ActGlobals.oFormActMain.GlobalTimeSorter, line.target, line.value_type);
             }
             return;
