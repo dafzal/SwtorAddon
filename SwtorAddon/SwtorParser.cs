@@ -19,7 +19,7 @@ namespace SwtorAddon
         }
 
         Regex regex;
-        const int DMG = 3, HEALS = 4, THREAT = 16;
+        const int DMG = 3, HEALS = 4, THREAT = 16, BUFF = 22;
         public void InitPlugin(System.Windows.Forms.TabPage pluginScreenSpace, System.Windows.Forms.Label pluginStatusText)
         {
             this.SetupSwtorEnvironment();
@@ -63,6 +63,7 @@ namespace SwtorAddon
 		        {"Threat Done", new CombatantData.DamageTypeDef("Threat Done", 0, Color.Black)},
                 //{"Resource Gain", new CombatantData.DamageTypeDef("Resource Gain", 0, Color.DarkBlue)},
                 //{"Resource Loss", new CombatantData.DamageTypeDef("Resource Loss", 0, Color.DarkBlue)},
+                {"Buffs", new CombatantData.DamageTypeDef("Buffs", 0, Color.Orange)},
                 // I dont understand why, but the last entry is always the sum of all other counters. 
                 // Its not particularly useful to have a counter for Damage+Threat
 		        {"All Outgoing", new CombatantData.DamageTypeDef("All Outgoing", 0, Color.Transparent)} 
@@ -81,6 +82,7 @@ namespace SwtorAddon
 		        {THREAT, new List<string> { "Threat Done" } },
                 //{20, new List<string> { "Resource Gain" } },
                 //{21, new List<string> { "Resource Loss" } },
+                {BUFF, new List<string>{ "Buffs" } },
 	        };
             CombatantData.SwingTypeToDamageTypeDataLinksIncoming = new SortedDictionary<int, List<string>>
 	        { 
@@ -116,12 +118,44 @@ namespace SwtorAddon
             cbIdleEnd.Checked = false;
         }
 
+        private class LocalizedName
+        {
+            public string Value { get; set; }
+            public string Id { get; set; }
+
+            private static readonly Regex id_regex = new Regex(@"\s*(.*?)\s*\{(\d+)\}\s*", RegexOptions.Compiled);
+
+            public LocalizedName(string s)
+            {
+                this.Value = String.Empty;
+                this.Id = String.Empty;
+
+                if (!String.IsNullOrEmpty(s))
+                {
+                    this.Value = s;
+
+                    var m = id_regex.Match(s);
+                    if (m.Success)
+                    {
+                        this.Value = m.Groups[1].Value;
+                        this.Id = m.Groups[2].Value;
+                    }
+                }
+            }
+
+            public static LocalizedName Empty
+            {
+                get { return new LocalizedName(String.Empty); }
+            }
+        }
+
         private class LogLine
         {
             public string source;
             public string target;
-            public string ability;
-            public string event_type, event_detail;
+            public LocalizedName ability;
+            public LocalizedName event_type;
+            public LocalizedName event_detail;
             public bool crit_value;
             public int value;
             public string value_type;
@@ -130,24 +164,22 @@ namespace SwtorAddon
             static Regex regex = 
                 new Regex(@"\[(.*)\] \[(.*)\] \[(.*)\] \[(.*)\] \[(.*)\] \((.*)\)[\s<]*(\d*)?[>]*", 
                     RegexOptions.Compiled);
-            static Regex id_regex = new Regex(@"\s*\{\d*}\s*", RegexOptions.Compiled);
         
             public LogLine(string line) 
             {
-                line = id_regex.Replace(line, "");
                 MatchCollection matches = regex.Matches(line);
                 source = matches[0].Groups[2].Value;
                 target = matches[0].Groups[3].Value;
-                ability = matches[0].Groups[4].Value;
+                ability = new LocalizedName(matches[0].Groups[4].Value);
                 if (matches[0].Groups[5].Value.Contains(":"))
                 {
-                    event_type = matches[0].Groups[5].Value.Split(':')[0];
-                    event_detail = matches[0].Groups[5].Value.Split(':')[1].Trim();
+                    event_type = new LocalizedName(matches[0].Groups[5].Value.Split(':')[0]);
+                    event_detail = new LocalizedName(matches[0].Groups[5].Value.Split(':')[1]);
                 }
                 else
                 {
-                    event_type = matches[0].Groups[5].Value;
-                    event_detail = "";
+                    event_type = new LocalizedName(matches[0].Groups[5].Value);
+                    event_detail = LocalizedName.Empty;
                 }
 
                 crit_value = matches[0].Groups[6].Value.Contains("*");
@@ -212,6 +244,11 @@ namespace SwtorAddon
                     ActGlobals.oFormActMain.GlobalTimeSorter, line.target, "Death");
                 
             }
+            else if (line.event_type.Id.Equals("836045448945477")) // Buff application
+            {
+                log.detectedType = Color.Orange.ToArgb();
+                type = BUFF;
+            }
 
             /*else if (line.event_type.Contains("Restore"))
             {
@@ -238,10 +275,15 @@ namespace SwtorAddon
             }
             if (line.threat > 0 && ActGlobals.oFormActMain.SetEncounter(time, line.source, line.target))
             {
-                ActGlobals.oFormActMain.AddCombatAction(type, line.crit_value, "None", line.source, line.ability, 
+                ActGlobals.oFormActMain.AddCombatAction(type, line.crit_value, "None", line.source, line.ability.Value, 
                     new Dnum(line.value), time, ActGlobals.oFormActMain.GlobalTimeSorter, line.target, line.value_type);
-                ActGlobals.oFormActMain.AddCombatAction(16, line.crit_value, "None", line.source, line.ability, 
+                ActGlobals.oFormActMain.AddCombatAction(16, line.crit_value, "None", line.source, line.ability.Value, 
                     new Dnum(line.threat), time, ActGlobals.oFormActMain.GlobalTimeSorter, line.target, "Increase");
+            }
+            if (type == BUFF && ActGlobals.oFormActMain.SetEncounter(time, line.source, line.target))
+            {
+                ActGlobals.oFormActMain.AddCombatAction(type, line.crit_value, "None", line.source, line.event_detail.Value,
+                    Dnum.NoDamage, time, ActGlobals.oFormActMain.GlobalTimeSorter, line.target, line.value_type);
             }
             return;
         }
